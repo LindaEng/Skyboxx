@@ -1,5 +1,6 @@
 import React from 'react'
 import * as Tone from 'tone'
+import EnvelopeSlider from './EnvelopeSlider'
 
 import {makeStyles} from '@material-ui/core/styles'
 import Paper from '@material-ui/core/Paper'
@@ -156,6 +157,7 @@ const Synthesizer = props => {
   let $synthType = state.sound
   let $oscillatorType = state.oscillator
   let $oscillatorPartials = state.oscillatorPartials
+  let envelopes = ['Attack', 'Decay', 'Sustain', 'Release']
 
   if (state.toggle) {
     inst.updateSynth($synthType)
@@ -255,9 +257,13 @@ const Synthesizer = props => {
             {state.toggle === false ? 'Play' : 'Stop'}
           </Button>
         </Grid>
-        {/* <Grid item xs={10} onClick={createSound}>
-          <Paper className={classes.paper}>xs=12</Paper>
-        </Grid> */}
+        <Grid item xs={10}>
+          <Paper className={classes.paper}>
+            {envelopes.map((env, id) => {
+              return <EnvelopeSlider key={id} state={state} envelope={env} />
+            })}
+          </Paper>
+        </Grid>
       </Grid>
     </div>
   )
