@@ -1,10 +1,12 @@
 import React from 'react'
 import * as Tone from 'tone'
+import EnvelopeSlider from './EnvelopeSlider'
 
 import {makeStyles} from '@material-ui/core/styles'
 import Paper from '@material-ui/core/Paper'
 import Grid from '@material-ui/core/Grid'
 import Button from '@material-ui/core/Button'
+import Box from '@material-ui/core/Box'
 
 import InputLabel from '@material-ui/core/InputLabel'
 import FormHelperText from '@material-ui/core/FormHelperText'
@@ -31,17 +33,16 @@ const useStyles = makeStyles(theme => ({
   }
 }))
 
-class Instrument {
+export class Instrument {
   constructor() {
     this.synth = null
     this.gain = new Tone.Gain()
     this.gain.toMaster()
     this.tick = 0
     this.initializeTransport()
-    this.counter = 0
   }
 
-  get defaultSettings() {
+  defaultSettings() {
     return {
       Synth: {
         oscillator: {type: 'triangle'},
@@ -107,7 +108,7 @@ class Instrument {
     let notes = 'CDEFGAB'.split('').map(n => `${n}4`)
     Tone.Transport.scheduleRepeat(time => {
       let note = notes[(this.tick * 2) % notes.length]
-      if (this.synth) this.synth.triggerAttackRelease(note, '8n', time)
+      if (this.synth) this.synth.triggerAttackRelease(note, '2n', time)
       this.tick++
     }, '4n')
     // if(this.synth) this.synth.triggerAttackRelease('C4', '32n')
@@ -122,16 +123,21 @@ class Instrument {
     }
   }
 
-  updateSynth(synthType) {
-    this.counter++
-    //if we already defined a synth
+  updateSynth(synthType, envelope, value) {
+    console.log('UPDATE synthType=', this.synth)
     if (this.synth) {
       this.synth.disconnect(this.gain)
       this.synth.dispose()
     }
 
     let settings = this.defaultSettings[synthType] || {}
-    this.synth = new Tone[synthType](settings)
+
+    this.synth = new Tone[synthType](envelope)
+    console.log('updateSynth this.synth=', this.synth.envelope)
+    for (let key in envelope) {
+      this.synth.envelope[key] = envelope[key]
+    }
+    console.log('updateSynth this.synth=', this.synth.envelope)
     this.synth.connect(this.gain)
     //  this.initializeTransport()
   }
@@ -150,15 +156,22 @@ const Synthesizer = props => {
     sound: 'Synth',
     oscillator: 'triangle',
     oscillatorPartials: '2',
-    toggle: false
+    toggle: false,
+    envelopes: {
+      attack: 0.005,
+      decay: 0.1,
+      sustain: 0.3,
+      release: 1
+    }
   })
 
   let $synthType = state.sound
   let $oscillatorType = state.oscillator
   let $oscillatorPartials = state.oscillatorPartials
+  let envelopes = ['attack', 'decay', 'sustain', 'release']
 
   if (state.toggle) {
-    inst.updateSynth($synthType)
+    inst.updateSynth($synthType, state.envelopes)
     inst.updateOscillatorType($oscillatorType, $oscillatorPartials)
   }
 
@@ -177,13 +190,25 @@ const Synthesizer = props => {
       toggle: !state.toggle
     })
     inst.disconnect()
-    console.log('TOGGLE A===', state.toggle)
+  }
+
+  const captureInfo = (sound, env, val) => {
+    setState({
+      ...state,
+      envelopes: Object.assign({}, state.envelopes, {
+        [env]: val
+      })
+    })
+    console.log('capture Info State=', state)
+    inst.updateSynth(sound, env, val)
+    inst.updateOscillatorType($oscillatorType, $oscillatorPartials)
+    inst.disconnect()
   }
 
   return (
     <div className={classes.root}>
-      <Grid container spacing={3}>
-        <Grid item xs={2}>
+      <Grid container spacing={1}>
+        <Grid item xs={12} md={2}>
           <FormControl variant="outlined" className={classes.formControl}>
             <InputLabel htmlFor="outlined-age-native-simple">
               Select Sound
@@ -251,13 +276,26 @@ const Synthesizer = props => {
               <option value="32">32</option>
             </Select>
           </FormControl>
-          <Button variant="outlined" onClick={control}>
-            {state.toggle === false ? 'Play' : 'Stop'}
-          </Button>
+          <Box>
+            <Button variant="outlined" onClick={control}>
+              {state.toggle === false ? 'Play' : 'Stop'}
+            </Button>
+          </Box>
         </Grid>
-        {/* <Grid item xs={10} onClick={createSound}>
-          <Paper className={classes.paper}>xs=12</Paper>
-        </Grid> */}
+        <Grid item xs={12} md={9}>
+          <Paper className={classes.paper}>
+            {envelopes.map((env, id) => {
+              return (
+                <EnvelopeSlider
+                  key={id}
+                  state={state}
+                  envelope={env}
+                  captureInfo={captureInfo}
+                />
+              )
+            })}
+          </Paper>
+        </Grid>
       </Grid>
     </div>
   )
