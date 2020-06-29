@@ -12,9 +12,13 @@ const useStyles = makeStyles({
 function valuetext(value) {
   return `${value}°C`
 }
+
 const EnvelopeSlider = props => {
-  console.log('envelope PROOOPHHHSS===akfaa', props)
   const classes = useStyles()
+
+  function updateEnvelope(event, value) {
+    props.captureInfo(props.state.sound, props.envelope, value)
+  }
 
   return (
     <div className={classes.root}>
@@ -22,15 +26,18 @@ const EnvelopeSlider = props => {
         {props.envelope}
       </Typography>
       <Slider
-        defaultValue={30}
+        id={props.envelope}
+        defaultValue={0}
         getAriaValueText={valuetext}
-        // onChange={updateEnvelope}
-        aria-labelledby="discrete-slider"
+        onChange={updateEnvelope}
+        //onDragEnd={console.log('i am dragging')}
+        //onDragStart={props.updateEnv}
+        // label= {props.envelope}
         valueLabelDisplay="auto"
-        step={10}
-        marks
-        min={10}
-        max={110}
+        step={0.005}
+        //marks
+        min={0}
+        max={1}
       />
     </div>
   )
