@@ -1,6 +1,7 @@
 import React from 'react'
 import * as Tone from 'tone'
 import EnvelopeSlider from './EnvelopeSlider'
+import Arpeggiator from './Arpeggiator'
 
 import {makeStyles} from '@material-ui/core/styles'
 import Paper from '@material-ui/core/Paper'
@@ -21,8 +22,9 @@ const useStyles = makeStyles(theme => ({
   paper: {
     padding: theme.spacing(3),
     textAlign: 'center',
-    color: theme.palette.text.secondary,
-    marginTop: '10px'
+    color: theme.palette.text.primary,
+    marginTop: '10px',
+    backgroundColor: '#f9f9f9'
   },
   formControl: {
     margin: theme.spacing(1),
@@ -97,6 +99,20 @@ export class Instrument {
           sustain: 1,
           release: 0.5
         }
+      },
+      MembraneSynth: {
+        pitchDecay: 0.05,
+        octaves: 10,
+        oscillator: {
+          type: 'sine'
+        },
+        envelope: {
+          attack: 0.001,
+          decay: 0.4,
+          sustain: 0.01,
+          release: 1.4,
+          attackCurve: 'exponential'
+        }
       }
     }
   }
@@ -104,14 +120,34 @@ export class Instrument {
   //   Tone.Transport.start()
   // }
 
-  initializeTransport() {
-    let notes = 'CDEFGAB'.split('').map(n => `${n}4`)
+  initializeTransport(notes = 'CDEFGAB') {
+    let newNotes = notes.split('').map(n => `${n}4`)
     Tone.Transport.scheduleRepeat(time => {
-      let note = notes[(this.tick * 2) % notes.length]
+      let note = newNotes[(this.tick * 2) % newNotes.length]
       if (this.synth) this.synth.triggerAttackRelease(note, '2n', time)
       this.tick++
     }, '4n')
     // if(this.synth) this.synth.triggerAttackRelease('C4', '32n')
+    Tone.Transport.start()
+  }
+  // initializeTransport() {
+  //   let notes = 'CDEFGAB'.split('').map(n => `${n}4`)
+  //   Tone.Transport.scheduleRepeat(time => {
+  //     let note = notes[(this.tick * 2) % notes.length]
+  //     if (this.synth) this.synth.triggerAttackRelease(note, '2n', time)
+  //     this.tick++
+  //   }, '4n')
+  //   // if(this.synth) this.synth.triggerAttackRelease('C4', '32n')
+  //   Tone.Transport.start()
+  // }
+  arpeggiator() {
+    var pattern = new Tone.Pattern(
+      function(time, note) {
+        synth.triggerAttackRelease(note, 0.25)
+      },
+      ['C4', 'D4', 'E4', 'G4', 'A4']
+    )
+    pattern.start(0)
     Tone.Transport.start()
   }
   disconnect() {
@@ -227,6 +263,7 @@ const Synthesizer = props => {
               <option value="Synth">Synth</option>
               <option value="AMSynth">AMSynth</option>
               <option value="FMSynth">FMSynth</option>
+              <option value="MembraneSynth">MembraneSynth</option>
             </Select>
           </FormControl>
 
@@ -295,6 +332,9 @@ const Synthesizer = props => {
               )
             })}
           </Paper>
+        </Grid>
+        <Grid item xs={12} md={12}>
+          <Arpeggiator inst={inst} play={control} />
         </Grid>
       </Grid>
     </div>
