@@ -1,4 +1,4 @@
-# Digisynth
+# Skyboxx
 
 A digital synthesizer that uses the Tone.js library
 
