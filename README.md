@@ -11,8 +11,8 @@
 ---
 ## Introduction
 
-Skyboxx is a compact digital synthesizer that utilizes the Tone.js framework.<br/>
-This app features an AM Synth, FM Synth, Synth, and MembraneSynth.<br/>
+Skyboxx is a compact digital synthesizer that utilizes the Tone.js framework.
+This app features an AM Synth, FM Synth, Synth, and MembraneSynth.
 Each synth has the capability to adjust its Attack, Delay, Sustain, and Release.<br/>
 
 ---
